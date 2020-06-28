@@ -63,6 +63,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\Prefabs\EnemyMovement.cs" />
     <Compile Include="Assets\Prefabs\Player.cs" />
     <Reference Include="UnityEngine">
       <HintPath>E:/Unity Editors/2019.4.0f1/Editor/Data/Managed/UnityEngine/UnityEngine.dll</HintPath>

@@ -17,7 +17,9 @@ public class Player : MonoBehaviour
     // References
     Rigidbody2D myRigidBody;
     Animator myAnimator;
-    Collider2D myCollider;
+    CapsuleCollider2D myBodyCollider;
+    BoxCollider2D myFeet;
+
     float initialGravityScale;
     float initialAnimatorSpeed;
 
@@ -25,7 +27,8 @@ public class Player : MonoBehaviour
     {
         myRigidBody = GetComponent<Rigidbody2D>();
         myAnimator = GetComponent<Animator>();
-        myCollider = GetComponent<Collider2D>();
+        myBodyCollider = GetComponent<CapsuleCollider2D>();
+        myFeet = GetComponent<BoxCollider2D>();
 
         initialGravityScale = myRigidBody.gravityScale;
         initialAnimatorSpeed = myAnimator.speed;
@@ -47,13 +50,14 @@ public class Player : MonoBehaviour
         myRigidBody.velocity = playerVelocity;
 
         bool isRunning = Mathf.Abs(myRigidBody.velocity.x) > Mathf.Epsilon;
+        bool isClimbing = myFeet.IsTouchingLayers(LayerMask.GetMask("Climbing"));
 
-        myAnimator.SetBool("Running", isRunning);
+        myAnimator.SetBool("Running", isRunning && !isClimbing);
     }
 
     private void Jump()
     {
-        bool isJumping = !myCollider.IsTouchingLayers(LayerMask.GetMask("Ground"));
+        bool isJumping = !myFeet.IsTouchingLayers(LayerMask.GetMask("Ground"));
 
         if (!isJumping && CrossPlatformInputManager.GetButtonDown("Jump"))
         {
@@ -64,7 +68,7 @@ public class Player : MonoBehaviour
 
     private void ClimbLadder()
     {
-        if (!myCollider.IsTouchingLayers(LayerMask.GetMask("Climbing"))) 
+        if (!myFeet.IsTouchingLayers(LayerMask.GetMask("Climbing"))) 
         {
             myAnimator.SetBool("Climbing", false);
             myRigidBody.gravityScale = initialGravityScale;
