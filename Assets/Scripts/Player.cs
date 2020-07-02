@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using UnityEditor.UI;
 using UnityEngine;
 using UnityStandardAssets.CrossPlatformInput;
 
@@ -15,23 +16,23 @@ public class Player : MonoBehaviour
     bool isAlive = true;
 
     // References
-    Rigidbody2D myRigidBody;
-    Animator myAnimator;
-    CapsuleCollider2D myBodyCollider;
-    BoxCollider2D myFeet;
+    Rigidbody2D rigidBody;
+    Animator animator;
+    CapsuleCollider2D bodyCollider;
+    BoxCollider2D feet;
 
     float initialGravityScale;
     float initialAnimatorSpeed;
 
     void Start()
     {
-        myRigidBody = GetComponent<Rigidbody2D>();
-        myAnimator = GetComponent<Animator>();
-        myBodyCollider = GetComponent<CapsuleCollider2D>();
-        myFeet = GetComponent<BoxCollider2D>();
+        rigidBody = GetComponent<Rigidbody2D>();
+        animator = GetComponent<Animator>();
+        bodyCollider = GetComponent<CapsuleCollider2D>();
+        feet = GetComponent<BoxCollider2D>();
 
-        initialGravityScale = myRigidBody.gravityScale;
-        initialAnimatorSpeed = myAnimator.speed;
+        initialGravityScale = rigidBody.gravityScale;
+        initialAnimatorSpeed = animator.speed;
     }
 
     // Update is called once per frame
@@ -41,67 +42,94 @@ public class Player : MonoBehaviour
         Jump();
         FlipSprite();
         ClimbLadder();
+        CheckEnemyCollision();
     }
 
     private void Run()
     {
+        if (!isAlive) { return; }
+
         float controlThrow = CrossPlatformInputManager.GetAxis("Horizontal"); // -1 to 1
-        Vector2 playerVelocity = new Vector2(controlThrow * runSpeed, myRigidBody.velocity.y);
-        myRigidBody.velocity = playerVelocity;
+        Vector2 playerVelocity = new Vector2(controlThrow * runSpeed, rigidBody.velocity.y);
+        rigidBody.velocity = playerVelocity;
 
-        bool isRunning = Mathf.Abs(myRigidBody.velocity.x) > Mathf.Epsilon;
-        bool isClimbing = myFeet.IsTouchingLayers(LayerMask.GetMask("Climbing"));
+        bool isRunning = Mathf.Abs(rigidBody.velocity.x) > Mathf.Epsilon;
+        bool isClimbing = feet.IsTouchingLayers(LayerMask.GetMask("Climbing"));
 
-        myAnimator.SetBool("Running", isRunning && !isClimbing);
+        animator.SetBool("Running", isRunning && !isClimbing);
     }
 
     private void Jump()
     {
-        bool isJumping = !myFeet.IsTouchingLayers(LayerMask.GetMask("Ground"));
+        if (!isAlive) { return; }
+
+        bool isJumping = !feet.IsTouchingLayers(LayerMask.GetMask("Ground"));
 
         if (!isJumping && CrossPlatformInputManager.GetButtonDown("Jump"))
         {
             Vector2 jumpVelocityToAdd = new Vector2(0f, jumpSpeed);
-            myRigidBody.velocity += jumpVelocityToAdd;
+            rigidBody.velocity += jumpVelocityToAdd;
         }
     }
 
     private void ClimbLadder()
     {
-        if (!myFeet.IsTouchingLayers(LayerMask.GetMask("Climbing"))) 
+        if (!isAlive) { return; }
+
+        if (!feet.IsTouchingLayers(LayerMask.GetMask("Climbing"))) 
         {
-            myAnimator.SetBool("Climbing", false);
-            myRigidBody.gravityScale = initialGravityScale;
-            myAnimator.speed = initialAnimatorSpeed;
+            animator.SetBool("Climbing", false);
+            rigidBody.gravityScale = initialGravityScale;
+            animator.speed = initialAnimatorSpeed;
             return;
         }
 
         float controlThrow = CrossPlatformInputManager.GetAxis("Vertical");
-        Vector2 climbVelocity = new Vector2(myRigidBody.velocity.x, controlThrow * climbSpeed);
-        myRigidBody.velocity = climbVelocity;
-        myRigidBody.gravityScale = 0;
+        Vector2 climbVelocity = new Vector2(rigidBody.velocity.x, controlThrow * climbSpeed);
+        rigidBody.velocity = climbVelocity;
+        rigidBody.gravityScale = 0;
 
         //bool playerHasVerticalSpeed = Mathf.Abs(myRigidBody.velocity.y) > Mathf.Epsilon;
-        myAnimator.SetBool("Climbing", true);
+        animator.SetBool("Climbing", true);
 
         if (controlThrow == 0)
         {
-            myAnimator.speed = 0;
+            animator.speed = 0;
         } else
         {
-            myAnimator.speed = initialAnimatorSpeed;
+            animator.speed = initialAnimatorSpeed;
         }
 
     }
 
     private void FlipSprite()
     {
-        bool playerHasHorizontalSpeed = Mathf.Abs(myRigidBody.velocity.x) > Mathf.Epsilon;
+        if (!isAlive) { return; }
+
+        bool playerHasHorizontalSpeed = Mathf.Abs(rigidBody.velocity.x) > Mathf.Epsilon;
 
         if (playerHasHorizontalSpeed)
         {
-            transform.localScale = new Vector2(Mathf.Sign(myRigidBody.velocity.x), 1f);
+            transform.localScale = new Vector2(Mathf.Sign(rigidBody.velocity.x), 1f);
         }
+    }
+
+    private void CheckEnemyCollision()
+    {
+        if (!isAlive) { return; }
+
+        if (rigidBody.IsTouchingLayers(LayerMask.GetMask("Enemy")))
+        {
+            Die();
+        }
+    }
+
+    private void Die()
+    {
+        this.isAlive = false;
+        this.animator.SetBool("Alive", false);
+        this.bodyCollider.enabled = false;
+        this.rigidBody.bodyType = RigidbodyType2D.Static;
     }
 
 }
