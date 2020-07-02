@@ -42,7 +42,8 @@ public class Player : MonoBehaviour
         Jump();
         FlipSprite();
         ClimbLadder();
-        CheckEnemyCollision();
+        CheckDeathCollision();
+        CheckDeathCollision();
     }
 
     private void Run()
@@ -114,11 +115,11 @@ public class Player : MonoBehaviour
         }
     }
 
-    private void CheckEnemyCollision()
+    private void CheckDeathCollision()
     {
         if (!isAlive) { return; }
 
-        if (rigidBody.IsTouchingLayers(LayerMask.GetMask("Enemy")))
+        if (rigidBody.IsTouchingLayers(LayerMask.GetMask("Enemy", "Spikes")))
         {
             Die();
         }
