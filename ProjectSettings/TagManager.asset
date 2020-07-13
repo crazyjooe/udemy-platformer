@@ -19,7 +19,7 @@ TagManager:
   - Player
   - Enemy
   - Spikes
-  - 
+  - Interactables
   - 
   - 
   - 
@@ -52,6 +52,9 @@ TagManager:
     locked: 0
   - name: Hazards
     uniqueID: 2459687925
+    locked: 0
+  - name: Interactables
+    uniqueID: 267645165
     locked: 0
   - name: Player
     uniqueID: 3284035833
